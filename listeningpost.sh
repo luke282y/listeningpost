@@ -5,7 +5,7 @@ IP="192.168.1.5"
 #SSL Listening Port for decrypt
 SSL="443"
 
-#dnschef config
+#dnschef config,blacklist domains
 cat > sinkhole.txt << EOF1
 [A]
 config.edge.skype.com:127.0.0.1
@@ -36,6 +36,7 @@ sudo pkill -f dnschef
 sudo rm dnslog.txt
 (sudo dnschef -i $IP --fakeip $IP --file sinkhole.txt --logfile dnslog.txt -q > /dev/null 2>&1 &)
 sleep 1s
+
 #setup tmux windows and listeners
 tmux kill-session -t listeningpost
 tmux new-session -d -s listeningpost -x "$(tput cols)" -y "$(tput lines)"
@@ -47,6 +48,10 @@ tmux select-pane -T SSLPROXY-$SSL
 #Note: copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca.pem
 tmux send 'mitmproxy --mode reverse:http://'"$IP"':10000 --listen-port 10443 --listen-host '"$IP" ENTER
 tmux split-window -p 70
-tmux select-pane -T LISTENER
-tmux send 'socat tcp-listen:10000,fork,reuseaddr stdout' ENTER
+tmux select-pane -T TCP-LISTENER
+tmux send 'socat -v tcp-listen:10000,fork,reuseaddr stdout' ENTER
+tmux split-window -h -p 50
+tmux select-pane -T UDP-LISTENER
+tmux send 'socat -v udp-listen:20000,fork,reuseaddr stdout' ENTER
+tmux select-pane -t 2
 tmux a
