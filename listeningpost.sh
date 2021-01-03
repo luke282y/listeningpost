@@ -1,3 +1,13 @@
+#Listeningpost will configure a Kali OS host as a malware listener
+#Client machine should have DNS and default gateway set to IP configured in IP variable
+#DNSchef is started on UDP port 53 with the specified black list of domains to resolv to localhost
+#All incoming traffic on the configured interface will be forwarded to the specified local IP address
+#ALL TCP ports are forwarded to TCP PORT 10000 and UDP ports (except 53) are forwarded to UDP 20000
+#The configured SSL port (443 by default) is forwared to port 10443 where mitmproxy is listening
+#mitmproxy will decrypt HTTPS traffic and send it to TCP port 10000
+#copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca-cert.pem
+#A tmux session will be created with DNS, Firewall Forwarding, SSL proxy, and TCP/UDP socat listeners
+
 #network config
 INTERFACE="eth1"
 IP="192.168.1.5"
@@ -19,6 +29,8 @@ settings-win.data.microsoft.com:127.0.0.1
 slscr.update.microsoft.com:127.0.0.1
 watson.telemetry.microsoft.com:127.0.0.1
 www.bing.com:127.0.0.1
+g.live.com:127.0.0.1
+v10.events.data.microsoft.com:127.0.0.1
 
 [PTR]
 *:127.0.0.1
@@ -53,7 +65,7 @@ tmux select-pane -T DNS_LOG
 tmux send 'tail -F dnslog.txt | grep "\sfor.*\sto\s'"$IP"'"' ENTER
 tmux split-window -p 80
 tmux select-pane -T FIREWALL_LOG
-tmux send 'tail -F /var/log/syslog | grep -oP "SRC=.*\sDST.*PROTO=\w\w\w\sSPT=\d+\sDPT=\d+" | grep -P "PROTO=\w\w\w\sSPT=\d+\sDPT=\d+"' ENTER
+tmux send 'tail -F /var/log/syslog | grep -oP "SRC=.*PROTO=\w\w\w\sSPT=\d+\sDPT=\d+\s" | stdbuf -oL cut -d'"'"' '"'"' -f1,2,9,10,11 | uniq' ENTER
 tmux split-window -p 80
 tmux select-pane -T SSLPROXY-$SSL
 #Note: copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca-cert.pem
