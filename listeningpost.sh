@@ -3,10 +3,10 @@
 #DNSchef is started on UDP port 53 with the specified black list of domains to resolv to localhost
 #All incoming traffic on the configured interface will be forwarded to the specified local IP address
 #ALL TCP ports are forwarded to TCP PORT 10000 and UDP ports (except 53) are forwarded to UDP 20000
-#The configured SSL port (443 by default) is forwared to port 10443 where mitmproxy is listening
+#The configured HTTPS port (443 by default) is forwared to port 10443 where mitmproxy is listening
 #mitmproxy will decrypt HTTPS traffic and send it to TCP port 10000
 #copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca-cert.pem
-#A tmux session will be created with DNS, Firewall Forwarding, SSL proxy, and TCP/UDP socat listeners
+#A tmux session will be created with DNS, Firewall Forwarding, HTTPS proxy, and TCP/UDP socat listeners
 
 #network config
 INTERFACE="eth1"
@@ -61,13 +61,13 @@ sleep 1s
 tmux kill-session -t listeningpost
 tmux new-session -d -s listeningpost -x "$(tput cols)" -y "$(tput lines)"
 tmux set -g pane-border-status top
-tmux select-pane -T DNS_LOG
+tmux select-pane -T DNS-LOG
 tmux send 'tail -F dnslog.txt | grep "\sfor.*\sto\s'"$IP"'"' ENTER
 tmux split-window -p 80
-tmux select-pane -T FIREWALL_LOG
+tmux select-pane -T FIREWALL-LOG
 tmux send 'tail -F /var/log/syslog | grep -v "DPT=53\s" | grep -oP "SRC=.*DPT=\d+\s" | stdbuf -oL cut -d'"'"' '"'"' -f1,2,9,10,11 | uniq' ENTER
 tmux split-window -p 80
-tmux select-pane -T SSLPROXY-$SSL
+tmux select-pane -T HTTPS-PROXY-$SSL
 #Note: copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca-cert.pem
 tmux send 'mitmproxy -v --mode reverse:http://'"$IP"':10000 --listen-port 10443 --listen-host '"$IP" ENTER
 tmux split-window -p 70 
