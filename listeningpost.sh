@@ -5,7 +5,7 @@
 #ALL TCP ports are forwarded to TCP PORT 10000 and UDP ports (except 53) are forwarded to UDP 20000
 #The configured HTTPS port (443 by default) is forwared to port 10443 where mitmproxy is listening
 #mitmproxy will decrypt HTTPS traffic and send it to TCP port 10000
-#copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca-cert.pem
+#copy ~/.mitmproxy/mitmproxy-ca-cert.cer to windows, run certutil -addstore root mitmproxy-ca-cert.cer
 #A tmux session will be created with DNS, Firewall Forwarding, HTTPS proxy, and TCP/UDP socat listeners
 
 #network config
@@ -67,6 +67,8 @@ sudo chgrp listeningpost /var/log/syslog
 sudo chmod 750 /var/log/syslog
 
 #setup tmux windows and listeners
+mv ~/.tmux.conf ~/.tmux.conf.bak
+echo "set -g mouse on" > ~/.tmux.conf
 tmux kill-session -t listeningpost
 tmux new-session -d -s listeningpost -x "$(tput cols)" -y "$(tput lines)"
 tmux set -g pane-border-status top
@@ -77,7 +79,7 @@ tmux select-pane -T FIREWALL-LOG
 tmux send 'tail -F /var/log/syslog | grep -v "DPT=53\s" | grep -oP "SRC=.*DPT=\d+\s" | stdbuf -oL cut -d'"'"' '"'"' -f1,2,9,10,11 | uniq' ENTER
 tmux split-window -p 80
 tmux select-pane -T HTTPS-PROXY-$SSL
-#Note: copy ~/.mitmproxy/mitmproxy-ca.pem to windows, run certutil -addstore root mitmproxy-ca-cert.pem
+#Note: copy ~/.mitmproxy/mitmproxy-ca-cert.cer to windows, run certutil -addstore root mitmproxy-ca-cert.cer
 tmux send 'mitmproxy -v --showhost --rawtcp --mode reverse:http://'"$IP"':10000 --listen-port 10443 --listen-host '"$IP" ENTER
 tmux split-window -p 70 
 tmux select-pane -T TCP-LISTENER
@@ -92,3 +94,4 @@ tmux new-window
 tmux send 'tcpdump -nnXSs 0 -i '"$INTERFACE"' host '"$IP" ENTER
 tmux select-window -t 0
 tmux a
+mv ~/.tmux.conf.bak ~/.tmux.conf
