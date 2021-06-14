@@ -78,36 +78,44 @@ tmux set -g pane-border-status top
 #pane 0 - DNS LOG
 tmux select-pane -T DNS-LOG
 tmux send 'tail -F dnslog.txt | grep "\sfor.*\sto\s'"$IP"'"' ENTER
+tmux send-keys -R
 #pane 1 - TCP Connections
 tmux split-window -p 80
 tmux select-pane -T TCP-CONNECTIONS
 tmux send 'tcpdump -q -n -l -i '"$INTERFACE"' -Q in "tcp[tcpflags] & (tcp-syn) !=0 and tcp[tcpflags] & (tcp-ack) =0" 2>/dev/null' ENTER
+tmux send-keys -R
 #pane 4 SSL Proxy
 tmux split-window -p 80
 tmux select-pane -T HTTPS-PROXY-$SSL
 #Note: copy ~/.mitmproxy/mitmproxy-ca-cert.cer to windows, run certutil -addstore root mitmproxy-ca-cert.cer
 tmux send 'mitmproxy -v --showhost --rawtcp --mode reverse:http://'"$IP"':10000 --listen-port 10443 --listen-host '"$IP" ENTER
+tmux send-keys -R
 #pane 3 UDP Connections
 tmux select-pane -t 1
 tmux split-window -h -p 50
 tmux select-pane -T UDP-CONNECTIONS
 tmux send 'tcpdump -q -n udp -i'"$INTERFACE"' 2>/dev/null' ENTER
+tmux send-keys -R
 #pane 5 TPC Listener
 tmux select-pane -t 3
 tmux split-window -p 70 
 tmux select-pane -T TCP-LISTENER
 tmux send 'socat -v tcp-listen:10000,fork,reuseaddr stdout' ENTER
+tmux send-keys -R
 #pane 6 UPD Listener
 tmux split-window -h -p 50
 tmux select-pane -T UDP-LISTENER
 tmux send 'socat -v udp-listen:20000,fork,reuseaddr stdout' ENTER
+tmux send-keys -R
 #pane 7 Shell pre populated with kill command
 tmux split-window -p 20
 tmux select-pane -T SHELL
 tmux send 'tmux kill-session -t listeningpost'
+tmux send-keys -R
 #open new windows with full tcp dump
 tmux new-window 
 tmux send 'tcpdump -nnXSs 0 -i '"$INTERFACE"' host '"$IP" ENTER
+tmux send-keys -R
 tmux select-window -t 0
 tmux a
 #restore old user tmux conf
