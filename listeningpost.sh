@@ -15,6 +15,10 @@ IP="192.168.6.10"
 #SSL Listening Port for decrypt
 SSL="443"
 
+#path to tcpdump, this may change depending on version of kali
+#you can find the path with the commad which tcpdump
+TCPDUMP_PATH="/usr/bin/tcpdump"
+
 #dnschef config,blacklist domains
 cat > sinkhole.txt << EOF1
 [A]
@@ -60,9 +64,9 @@ sleep 1s
 USER=$(whoami)
 sudo groupadd listeningpost
 sudo usermod -a -G listeningpost $USER
-sudo chgrp listeningpost /usr/bin/tcpdump
-sudo chmod 750 /usr/bin/tcpdump
-sudo setcap cap_net_raw,cap_net_admin=eip /usr/bin/tcpdump
+sudo chgrp listeningpost $TCPDUMP_PATH
+sudo chmod 750 $TCPDUMP_PATH
+sudo setcap cap_net_raw,cap_net_admin=eip $TCPDUMP_PATH
 
 #save user tmux conf and enable mouse
 cp ~/.tmux.conf ~/.tmux.conf.bak
