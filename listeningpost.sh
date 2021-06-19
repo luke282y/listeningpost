@@ -94,7 +94,7 @@ tmux send-keys -R
 tmux select-pane -t 1
 tmux split-window -h -p 50
 tmux select-pane -T UDP-CONNECTIONS
-tmux send 'tcpdump -q -n udp -i'"$INTERFACE"' 2>/dev/null' ENTER
+tmux send 'tcpdump -q -n udp -i '"$INTERFACE"' -Q in dst port not 53 2>/dev/null' ENTER
 tmux send-keys -R
 #pane 5 TPC Listener
 tmux select-pane -t 3
